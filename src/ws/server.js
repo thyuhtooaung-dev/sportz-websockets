@@ -17,7 +17,7 @@ function broadcast(wss, payload) {
 
 export function attachWebSocketServer(server) {
   const wss = new WebSocketServer({
-    server,
+    noServer: true,
     path: "/ws",
     maxPayload: 1024 * 1024,
   });

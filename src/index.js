@@ -1,7 +1,7 @@
 import express from "express";
 import http from "http";
 import { matchRouter } from "./routes/matches.js";
-import { attachWebSocketSever } from "./ws/server.js";
+import { attachWebSocketServer } from "./ws/server.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -17,7 +17,7 @@ app.get("/", (req, res) => {
 
 app.use("/matches", matchRouter);
 
-const { broadcastMatchCreated } = attachWebSocketSever(server);
+const { broadcastMatchCreated } = attachWebSocketServer(server);
 app.locals.broadcastMatchCreated = broadcastMatchCreated;
 
 server.listen(PORT, HOST, () => {

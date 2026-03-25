@@ -16,7 +16,12 @@ export const httpArcjet = arcjetKey
         shield({ mode: arcjetMode }),
         detectBot({
           mode: arcjetMode,
-          allow: ["CATEGORY:SEARCH_ENGINE", "CATEGORY:PREVIEW"],
+          allow: [
+            "CATEGORY:SEARCH_ENGINE",
+            "CATEGORY:PREVIEW",
+            "CATEGORY:TOOL", // Allows common dev tools like Postman
+            "CURL",
+          ],
         }),
         slidingWindow({ mode: arcjetMode, interval: "10s", max: 50 }),
       ],
@@ -43,6 +48,9 @@ export function securityMiddleware() {
 
     try {
       const decision = await httpArcjet.protect(req);
+      if (decision.conclusion !== "ALLOW") {
+        console.log("Arcjet would have blocked this! Reason:", decision.reason);
+      }
       if (decision.isDenied()) {
         if (decision.reason.isRateLimit()) {
           return res.status(429).json({ error: "Too many requests" });

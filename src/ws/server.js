@@ -1,7 +1,9 @@
 import { WebSocket, WebSocketServer } from "ws";
 import { wsArcjet } from "../arcjet.js";
+import { getMatchById } from "../routes/matches.js";
 
 const matchSubscribers = new Map();
+const MAX_SUBSCRIPTIONS = 10;
 
 function subscribe(matchId, socket) {
   if (!matchSubscribers.has(matchId)) {
@@ -57,26 +59,44 @@ function broadcastToMatch(matchId, payload) {
   }
 }
 
-function handleMessage(socket, data) {
+async function handleMessage(socket, data) {
   let message;
 
   try {
     message = JSON.parse(data.toString());
   } catch {
     sendJson(socket, { type: "error", message: "Invalid JSON" });
+    return;
   }
 
-  if (message?.type === "subscribe" && Number.isInteger(message.matchId)) {
-    subscribe(message.matchId, socket);
-    socket.subscriptions.add(message.matchId);
-    sendJson(socket, { type: "subscribed", matchId: message.matchId });
+  if (message?.type === "subscribe") {
+    const { matchId } = message;
+    if (
+      !Number.isInteger(matchId) ||
+      !(await getMatchById(matchId))
+    ) {
+      sendJson(socket, { type: "error", reason: "invalid_match" });
+      return;
+    }
+
+    if (socket.subscriptions.size >= MAX_SUBSCRIPTIONS) {
+      sendJson(socket, { type: "error", reason: "subscription_limit" });
+      return;
+    }
+
+    subscribe(matchId, socket);
+    socket.subscriptions.add(matchId);
+    sendJson(socket, { type: "subscribed", matchId: matchId });
     return;
   }
 
   if (message?.type === "unsubscribe" && Number.isInteger(message.matchId)) {
-    unsubscribe(message.matchId, socket);
-    socket.subscriptions.delete(message.matchId);
-    sendJson(socket, { type: "unsubscribed", matchId: message.matchId });
+    const { matchId } = message;
+    if (socket.subscriptions.has(matchId)) {
+      unsubscribe(matchId, socket);
+      socket.subscriptions.delete(matchId);
+      sendJson(socket, { type: "unsubscribed", matchId: matchId });
+    }
   }
 }
 
@@ -134,15 +154,14 @@ export function attachWebSocketServer(server) {
       handleMessage(socket, data);
     });
 
-    socket.on("error", () => {
+    socket.on("error", (err) => {
+      console.error(err);
       socket.terminate();
     });
 
     socket.on("close", () => {
       cleanupSubscription(socket);
     });
-
-    socket.on("error", console.error);
   });
 
   const interval = setInterval(() => {

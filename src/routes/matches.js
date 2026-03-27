@@ -6,11 +6,24 @@ import {
 import { db } from "../db/db.js";
 import { matches } from "../db/schema.js";
 import { getMatchStatus } from "../utils/match-status.js";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 export const matchRouter = express.Router();
 
 const MAX_LIMIT = 100;
+
+export async function getMatchById(matchId) {
+  try {
+    const [match] = await db
+      .select()
+      .from(matches)
+      .where(eq(matches.id, matchId));
+    return match;
+  } catch (e) {
+    console.error("Failed to get match by ID", e);
+    return undefined;
+  }
+}
 
 matchRouter.get("/", async (req, res) => {
   const parsed = listMatchesQuerySchema.safeParse(req.query);

@@ -219,15 +219,6 @@ function scoreDeltaFromEntry(entry: any, match: any) {
   return null;
 }
 
-function fakeScoreDelta(matchState: any) {
-  const nextSide = matchState.fakeNext === "home" ? "away" : "home";
-  matchState.fakeNext = nextSide;
-  const points = 1;
-  return nextSide === "home"
-    ? { home: points, away: 0 }
-    : { home: 0, away: points };
-}
-
 function inningsRank(period: any) {
   if (!period) {
     return 0;
@@ -267,13 +258,7 @@ function cricketScoreDelta(entry: any, match: any) {
   const battingTeam = cricketBattingTeam(entry, match);
   const delta = scoreDeltaFromEntry(entry, match);
   if (!delta) {
-    if (!battingTeam) {
-      return null;
-    }
-    const points = 1;
-    return battingTeam === match.homeTeam
-      ? { home: points, away: 0 }
-      : { home: 0, away: points };
+    return null;
   }
 
   if (!battingTeam) {
@@ -579,8 +564,8 @@ async function seed() {
     const isCricket = String(match.sport).toLowerCase() === "cricket";
     const delta = isCricket
       ? cricketScoreDelta(entry, match)
-      : (scoreDeltaFromEntry(entry, match) ?? fakeScoreDelta(target));
-    if (delta) {
+      : scoreDeltaFromEntry(entry, match);
+    if (delta && (delta.home > 0 || delta.away > 0)) {
       target.score.home += delta.home;
       target.score.away += delta.away;
       await updateMatchScore(match.id, target.score.home, target.score.away);

@@ -41,9 +41,6 @@ export const useMatchData = (): UseMatchData => {
   const handleWSMessage = useCallback((msg: WSMessage) => {
     switch (msg.type) {
       case "score_update":
-        if (!subscribedMatchIdsRef.current.has(String(msg.matchId))) {
-          return;
-        }
         setMatches((prevMatches) =>
           prevMatches.map((m) => {
             if (String(m.id) === String(msg.matchId)) {
@@ -101,23 +98,7 @@ export const useMatchData = (): UseMatchData => {
       const nextMatchIds = new Set(
         nextMatches.map((match) => String(match.id)),
       );
-      setMatches((prevMatches) => {
-        const prevById = new Map(
-          prevMatches.map((match) => [String(match.id), match]),
-        );
-        return nextMatches.map((match) => {
-          const matchId = String(match.id);
-          const prev = prevById.get(matchId);
-          if (prev && !subscribedMatchIdsRef.current.has(matchId)) {
-            return {
-              ...match,
-              homeScore: prev.homeScore,
-              awayScore: prev.awayScore,
-            };
-          }
-          return match;
-        });
-      });
+      setMatches(nextMatches);
       if (knownMatchIdsRef.current.size > 0) {
         let newCount = 0;
         nextMatchIds.forEach((matchId) => {

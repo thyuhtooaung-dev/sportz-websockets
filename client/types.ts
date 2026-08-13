@@ -15,7 +15,12 @@ export interface MatchResponse {
   data: Match[];
 }
 
-export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'reconnecting' | 'error';
+export type ConnectionStatus =
+  | "disconnected"
+  | "connecting"
+  | "connected"
+  | "reconnecting"
+  | "error";
 
 export interface Commentary {
   id: string | number;
@@ -38,12 +43,12 @@ export interface CommentaryResponse {
 
 // WebSocket Message Types
 export interface WSMessageCommentary {
-  type: 'commentary';
+  type: "commentary";
   data: Commentary;
 }
 
 export interface WSMessageScore {
-  type: 'score_update';
+  type: "score_update";
   matchId: string | number;
   data: {
     homeScore: number;
@@ -52,41 +57,41 @@ export interface WSMessageScore {
 }
 
 export interface WSMessageWelcome {
-  type: 'welcome';
+  type: "welcome";
   message?: string;
 }
 
 export interface WSMessagePong {
-  type: 'pong';
+  type: "pong";
 }
 
 export interface WSMessageError {
-  type: 'error';
+  type: "error";
   code: string;
   message: string;
 }
 
 export interface WSMessageSubscribed {
-  type: 'subscribed';
+  type: "subscribed";
   matchId: string | number;
 }
 
 export interface WSMessageUnsubscribed {
-  type: 'unsubscribed';
+  type: "unsubscribed";
   matchId: string | number;
 }
 
 export interface WSMessageSubscriptions {
-  type: 'subscriptions';
+  type: "subscriptions";
   matchIds: Array<string | number>;
 }
 
 export interface WSMessageSubscribedAll {
-  type: 'subscribed_all';
+  type: "subscribed_all";
 }
 
 export interface WSMessageUnsubscribedAll {
-  type: 'unsubscribed_all';
+  type: "unsubscribed_all";
 }
 
 export type WSMessage =

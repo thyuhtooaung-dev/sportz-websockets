@@ -1,11 +1,11 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const listCommentaryQuerySchema = z.object({
   limit: z.coerce.number().int().positive().max(100).optional(),
 });
 
 export const createCommentarySchema = z.object({
-  minute: z.number().int().nonnegative(),
+  minute: z.number().int().nonnegative().optional(),
   sequence: z.number().int().optional(),
   period: z.string().optional(),
   eventType: z.string().optional(),

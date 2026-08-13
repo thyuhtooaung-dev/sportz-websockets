@@ -21,14 +21,14 @@ export const fetchMatches = async (limit = 50): Promise<MatchResponse> => {
 
 export const fetchMatchCommentary = async (
   matchId: string | number,
-  limit = 100
+  limit = 100,
 ): Promise<CommentaryResponse> => {
   try {
     const response = await fetch(
       `${API_BASE_URL}/matches/${matchId}/commentary?limit=${limit}`,
       {
         method: "GET",
-      }
+      },
     );
 
     if (!response.ok) {

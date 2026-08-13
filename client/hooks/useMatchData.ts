@@ -26,13 +26,17 @@ export const useMatchData = (): UseMatchData => {
   const [commentary, setCommentary] = useState<Commentary[]>([]);
   const [isCommentaryLoading, setIsCommentaryLoading] = useState(false);
   const [wsError, setWsError] = useState<string | null>(null);
-  const [activeMatchId, setActiveMatchId] = useState<string | number | null>(null);
+  const [activeMatchId, setActiveMatchId] = useState<string | number | null>(
+    null,
+  );
   const [newMatchesCount, setNewMatchesCount] = useState(0);
   const latestMatchIdRef = useRef<string | number | null>(null);
   const subscribedMatchIdsRef = useRef(new Set<string>());
   const hasLoadedRef = useRef(false);
   const knownMatchIdsRef = useRef(new Set<string>());
-  const newMatchesTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const newMatchesTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   const handleWSMessage = useCallback((msg: WSMessage) => {
     switch (msg.type) {
@@ -42,9 +46,7 @@ export const useMatchData = (): UseMatchData => {
         }
         setMatches((prevMatches) =>
           prevMatches.map((m) => {
-            // Loose equality check for ID (string vs number)
-            // eslint-disable-next-line eqeqeq
-            if (m.id == msg.matchId) {
+            if (String(m.id) === String(msg.matchId)) {
               return {
                 ...m,
                 homeScore: msg.data.homeScore,
@@ -52,7 +54,7 @@ export const useMatchData = (): UseMatchData => {
               };
             }
             return m;
-          })
+          }),
         );
         break;
       case "commentary": {
@@ -85,12 +87,8 @@ export const useMatchData = (): UseMatchData => {
     }
   }, []);
 
-  const {
-    status,
-    connectGlobal,
-    subscribeMatch,
-    unsubscribeMatch,
-  } = useWebSocket(handleWSMessage);
+  const { status, connectGlobal, subscribeMatch, unsubscribeMatch } =
+    useWebSocket(handleWSMessage);
 
   const loadMatches = useCallback(async () => {
     if (!hasLoadedRef.current) {
@@ -100,10 +98,12 @@ export const useMatchData = (): UseMatchData => {
     try {
       const data = await fetchMatches(100);
       const nextMatches = data.data || [];
-      const nextMatchIds = new Set(nextMatches.map((match) => String(match.id)));
+      const nextMatchIds = new Set(
+        nextMatches.map((match) => String(match.id)),
+      );
       setMatches((prevMatches) => {
         const prevById = new Map(
-          prevMatches.map((match) => [String(match.id), match])
+          prevMatches.map((match) => [String(match.id), match]),
         );
         return nextMatches.map((match) => {
           const matchId = String(match.id);
@@ -140,7 +140,10 @@ export const useMatchData = (): UseMatchData => {
 
       nextMatches.forEach((match) => {
         const matchId = String(match.id);
-        if (subscribedMatchIdsRef.current.has(matchId) && match.status.toLowerCase() === "finished") {
+        if (
+          subscribedMatchIdsRef.current.has(matchId) &&
+          match.status.toLowerCase() === "finished"
+        ) {
           subscribedMatchIdsRef.current.delete(matchId);
           unsubscribeMatch(match.id);
           if (latestMatchIdRef.current == match.id) {
@@ -229,7 +232,7 @@ export const useMatchData = (): UseMatchData => {
           }
         });
     },
-    [activeMatchId, subscribeMatch, unsubscribeMatch]
+    [activeMatchId, subscribeMatch, unsubscribeMatch],
   );
 
   const unwatchMatch = useCallback(
@@ -244,7 +247,7 @@ export const useMatchData = (): UseMatchData => {
         setIsCommentaryLoading(false);
       }
     },
-    [activeMatchId, unsubscribeMatch]
+    [activeMatchId, unsubscribeMatch],
   );
 
   return {
